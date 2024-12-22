@@ -1,20 +1,17 @@
 package com.blog.app.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 
-
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto {
 
     private String username;
     private String password;
-
-
 
     public String getUsername() {
         return username;

@@ -1,6 +1,7 @@
 package com.blog.app.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,6 +13,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
@@ -22,18 +25,41 @@ public class User implements UserDetails {
     private String username;
     private String password;
 
-    @ManyToMany
-    private List<Role> roleList;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Post> postList;
+
+    @ManyToMany(cascade = { CascadeType.DETACH,  CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST  },  fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "roleId")
+    )
+    @Column(name = "user_roles")
+    private List<Role> roles = new ArrayList<>();
 
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", roleList=" + roleList +
-                '}';
+    public void addRole(Role role){
+        if (!roles.contains(role)){
+            roles.add(role);
+            role.addUser(this);
+        }
+    }
+    public void removeRole(Role role){
+        roles.remove(role);
+        role.removeUser(this);
+    }
+    public void addPost(Post post){
+        postList.add(post);
+        post.setUser(this);
+    }
+    public void removePost(Post post){
+        postList.remove(post);
+        post.setUser(null);
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public void setUserId(Long userId) {
@@ -48,16 +74,28 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public void setRoleList(List<Role> roleList) {
-        this.roleList = roleList;
+    public List<Post> getPostList() {
+        return postList;
     }
 
+    public void setPostList(List<Post> postList) {
+        this.postList = postList;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        this.roleList.forEach(role -> authorities.add(new
+        this.roles.forEach(role -> authorities.add(new
                 SimpleGrantedAuthority(role.getRoleName())));
         return authorities;
     }
@@ -90,5 +128,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 }

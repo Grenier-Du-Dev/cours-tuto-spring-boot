@@ -37,8 +37,8 @@ public class AppSecurity {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         (auth) -> auth
-                                .requestMatchers("/", "/user/**").permitAll()
-                                .requestMatchers("/profile").hasRole("ADMIN")
+                                .requestMatchers("/", "/user/**","/post/list").permitAll()
+                                .requestMatchers("/profile/**").hasRole("USER")
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

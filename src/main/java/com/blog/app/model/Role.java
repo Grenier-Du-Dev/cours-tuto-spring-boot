@@ -1,8 +1,10 @@
 package com.blog.app.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -18,8 +20,18 @@ public class Role {
     private Long roleId;
     private String roleName;
 
-    @ManyToMany
-    private List<User> userList;
+
+    @ManyToMany(mappedBy = "roles", fetch=FetchType.EAGER, cascade = { CascadeType.DETACH,  CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST  })
+    @JsonIgnore
+    List<User> users = new ArrayList<>();
+
+    public void addUser(User user){
+        users.add(user);
+    }
+
+    public void removeUser(User user){
+        users.remove(user);
+    }
 
     public Long getRoleId() {
         return roleId;
@@ -37,11 +49,11 @@ public class Role {
         this.roleName = roleName;
     }
 
-    public List<User> getUserList() {
-        return userList;
+    public List<User> getUsers() {
+        return users;
     }
 
-    public void setUserList(List<User> userList) {
-        this.userList = userList;
+    public void setUsers(List<User> users) {
+        this.users = users;
     }
 }
